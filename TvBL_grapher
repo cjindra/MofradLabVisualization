@@ -1,0 +1,43 @@
+#Takes input as:
+#python TvBL_grapher file1 force1 file2 force2
+# Example: TvBL_grapher E_10_400_2d10.txt 2.0d-10 E_10_400_3d10.txt 3.0d-10 E_10_400_5d10.txt 5.0d-10 E_10_400_6d10.txt 6.0d-10 E_10_400_8d10.txt 8.0d-10
+
+
+
+import csv
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+plt.rcParams['figure.dpi'] = 300
+import sys
+
+if len(sys.argv) < 2:
+	print("Please specify input file(s)")
+
+elif len(sys.argv) == 2:
+	data = pd.read_table(sys.argv[1], sep="  *", engine='python')
+	print('\n-------------------------------------------------------------------')
+	print(data)
+	print('-------------------------------------------------------------------\n')
+
+	plt.plot(data['Sim_Time'], data['Bundle_length'])
+	plt.title('Bundle Length Over Time')
+	plt.xlabel('Time')
+	plt.ylabel('MT Bundle Length')
+	plt.tight_layout()
+	plt.savefig(sys.argv[1].split('.')[0]+'_graph')
+
+else:
+	for i in range(1, len(sys.argv)-1, 2):
+		data = pd.read_table(sys.argv[i], sep="  *", engine='python')
+		data['Sim_Time']=data['Sim_Time']*1000000
+		data['Bundle_length']=data['Bundle_length']*1000000*2 #doubling length 
+		plt.plot(data['Sim_Time'], data['Bundle_length'], label=sys.argv[i+1]+' N')
+		plt.title('Bundle Length Over Time for Different Force Magnitudes')
+		plt.xlabel('Time in Microseconds')
+		plt.ylabel('MT Bundle Length in Micrometers')
+		plt.legend()
+		plt.tight_layout()
+		plt.savefig('TvBL_Out')

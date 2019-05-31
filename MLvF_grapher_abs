@@ -1,0 +1,42 @@
+#Takes input as:
+#python MLvF_grapher file1 force1 file2 force2
+# Example: MLvF_grapher E_10_400_2d10.txt 2.0d-10 E_10_400_3d10.txt 3.0d-10 E_10_400_5d10.txt 5.0d-10 E_10_400_6d10.txt 6.0d-10 E_10_400_8d10.txt 8.0d-10
+
+
+
+import csv
+import numpy as np
+import pandas as pd
+import matplotlib
+from scipy import stats
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+plt.rcParams['figure.dpi'] = 300
+import sys
+
+if len(sys.argv) < 2:
+	print("Please specify input file(s)")
+
+else:
+	pts = []
+	for i in range(1, len(sys.argv)-1, 2):
+		data = pd.read_table(sys.argv[i], sep="  *", engine='python')
+		data['Bundle_length']=data['Bundle_length']*1000000
+		pts.append([data['Bundle_length'].max(), float(sys.argv[i+1].replace('d','E'))*10000000000]) #take out *10000000000 to make it N
+
+	
+
+	arr = np.array(pts)
+	arr[:,0]*=2            #Doubling the lengths
+	arr[:,0] -= 2.14       #subtracting initial length
+	arr[:,1] *= 19         #force*19
+	plt.plot(arr[:,0], arr[:,1], '-o')
+	slope, intercept, r_value, p_value, std_err = stats.linregress(arr[:,0],arr[:,1])
+	line = slope*arr[:,0]+intercept
+	plt.plot(arr[:,0], line, label='y = ' + str(slope)+'x + ' + str(intercept))
+	plt.title('Force Magnitudes for Different Maximum Bundle Lengths')
+	plt.xlabel('Maximum Change in Bundle Length (Micrometers)')
+	plt.ylabel('Total Force Magnitude (Newtons E-10)')
+	plt.legend()
+	plt.tight_layout()
+	plt.savefig('MLvF_Abs_Out')
